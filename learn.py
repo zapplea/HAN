@@ -7,7 +7,7 @@ import argparse
 def main(config):
     with tf.device('/gpu:0'):
         model = HAN(config)
-        model_dic = model.build_senti_net()
+        model_dic = model.build_HAN_net()
     datafeeder = DataFeeder(config['datafeeder'])
     train = SentiTrain(config,datafeeder)
     train.train(model_dic)
