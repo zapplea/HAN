@@ -16,9 +16,9 @@ class HAN:
         H = self.layers.biLSTM(X,seq_len,'')
         graph = tf.get_default_graph()
         tf.add_to_collection('reg', tf.contrib.layers.l2_regularizer(self.config['model']['reg_rate'])(
-            graph.get_tensor_by_name('biLSTM/bidirectional_rnn/fw/sru_cell/kernel:0')))
+            graph.get_tensor_by_name('biLSTM/bidirectional_rnn/fw/lstm_cell/kernel:0')))
         tf.add_to_collection('reg', tf.contrib.layers.l2_regularizer(self.config['model']['reg_rate'])(
-            graph.get_tensor_by_name('biLSTM/bidirectional_rnn/bw/sru_cell/kernel:0')))
+            graph.get_tensor_by_name('biLSTM/bidirectional_rnn/bw/lstm_cell/kernel:0')))
         sent_att = self.layers.sent_attention(H,X_id)
         sent_repr = self.layers.sent_repr(sent_att, H)
         senti_score = self.layers.score(sent_repr)
