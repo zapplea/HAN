@@ -116,7 +116,7 @@ class Layers:
         # (batch size, sent len, mlp dim)
         u = tf.nn.tanh(tf.add(tf.tensordot(X,W,axes=[[2],[0]]),b))
         # (mlp dim,)
-        uW = tf.get_variable(name='word_context_vec',initializer=self.parameter_initializer(shape=(self.config['model']['mlp_dim']),dtype='float32'))
+        uW = tf.get_variable(name='word_context_vec',initializer=self.parameter_initializer(shape=(self.config['model']['mlp_dim'],),dtype='float32'))
         tf.add_to_collection('reg', tf.contrib.layers.l2_regularizer(self.config['model']['reg_rate'])(uW))
         # (batch size, sent len)
         temp = tf.clip_by_value(tf.reduce_sum(tf.multiply(u,uW),axis=-1),
