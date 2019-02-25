@@ -160,7 +160,7 @@ class Layers:
                                                                    dtype='float32'))
         tf.add_to_collection('reg',tf.contrib.layers.l2_regularizer(self.config['model']['reg_rate'])(A))
         # (attr num, senti num)
-        b = tf.get_variable(name='mlp_bias',initializer=tf.zeros(shape=(self.config['model']['attr_num'],self.config['model']['senti_num']),
+        b = tf.get_variable(name='A_bias',initializer=tf.zeros(shape=(self.config['model']['attr_num'],self.config['model']['senti_num']),
                                                                  dtype='float32'))
         # (batch size, attr num, senti num)
         score = tf.add(tf.tensordot(sent_repr,A,axes=[[1],[2]]),b)
