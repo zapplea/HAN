@@ -34,7 +34,7 @@ if __name__ == "__main__":
                        'mlp_dim':200},
               'train':{'epoch_num':20,
                        'report_filePath':'/datastore/liu121/sentidata2/report/HAN',
-                       'early_stop_limit':3,
+                       'early_stop_limit':10,
                        'mod':1,
                        'sr_path':'/datastore/liu121/sentidata2/result/HAN',
                        'attributes_num':20,},
