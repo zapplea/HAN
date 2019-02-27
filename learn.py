@@ -35,7 +35,7 @@ if __name__ == "__main__":
                        'sentAtt_num':3},
               'train':{'epoch_num':100,
                        'report_filePath':'/datastore/liu121/sentidata2/report/HAN',
-                       'early_stop_limit':20,
+                       'early_stop_limit':5,
                        'mod':1,
                        'sr_path':'/datastore/liu121/sentidata2/result/HAN',
                        'attributes_num':20,},
