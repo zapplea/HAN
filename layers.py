@@ -94,42 +94,43 @@ class Layers:
             outputs = tf.concat(outputs, axis=-1)
         return outputs
 
-    def sent_attention(self,X, X_id):
+    def sent_attention(self,X, X_id,name=''):
         """
 
         :param X: (batch size, sent len, rnn dim)
         :param X_id: (batch size, sent len)
         :return:(batch size, max sent len)
         """
-        X_id = tf.cast(X_id, dtype='float32')
-        padding_id = tf.ones_like(X_id, dtype='float32') * self.config['model']['padding_word_index']
-        is_padding = tf.equal(X_id, padding_id)
-        # (batch size, max sentence len)
-        mask = tf.where(is_padding,
-                        tf.zeros_like(X_id, dtype='float32'),
-                        tf.ones_like(X_id, dtype='float32'))
-        # (rnn dim, mlp_dim)
-        W = tf.get_variable(name = 'mlp_W',
-                            initializer=self.parameter_initializer(shape=(self.config['model']['biLSTM']['rnn_dim'],self.config['model']['mlp_dim']),dtype='float32'))
-        tf.add_to_collection('reg', tf.contrib.layers.l2_regularizer(self.config['model']['reg_rate'])(W))
-        b = tf.get_variable(name='mlp_bias',initializer=tf.zeros(shape=(self.config['model']['mlp_dim'],),dtype='float32'))
-        # (batch size, sent len, mlp dim)
-        u = tf.nn.tanh(tf.add(tf.tensordot(X,W,axes=[[2],[0]]),b))
-        # (mlp dim,)
-        uW = tf.get_variable(name='word_context_vec',initializer=self.parameter_initializer(shape=(self.config['model']['mlp_dim'],),dtype='float32'))
-        tf.add_to_collection('reg', tf.contrib.layers.l2_regularizer(self.config['model']['reg_rate'])(uW))
-        # (batch size, sent len)
-        temp = tf.clip_by_value(tf.reduce_sum(tf.multiply(u,uW),axis=-1),
-                                clip_value_min=tf.constant(-self.config['model']['clip_value']),
-                                clip_value_max=tf.constant(self.config['model']['clip_value']))
-        # (batch size, sent len)
-        temp = tf.multiply(temp,mask)
-        # (batch size, 1)
-        denominator = tf.reduce_sum(temp, axis=-1, keepdims=True)
-        # (batch size, max sent len)
-        denominator = tf.tile(denominator, multiples=[1, self.config['model']['max_sent_len']])
-        # (batch size, max sent len)
-        att = tf.truediv(temp, denominator)
+        with tf.variable_scope('sentAtt' + name, reuse=tf.AUTO_REUSE):
+            X_id = tf.cast(X_id, dtype='float32')
+            padding_id = tf.ones_like(X_id, dtype='float32') * self.config['model']['padding_word_index']
+            is_padding = tf.equal(X_id, padding_id)
+            # (batch size, max sentence len)
+            mask = tf.where(is_padding,
+                            tf.zeros_like(X_id, dtype='float32'),
+                            tf.ones_like(X_id, dtype='float32'))
+            # (rnn dim, mlp_dim)
+            W = tf.get_variable(name = 'mlp_W',
+                                initializer=self.parameter_initializer(shape=(self.config['model']['biLSTM']['rnn_dim'],self.config['model']['mlp_dim']),dtype='float32'))
+            tf.add_to_collection('reg', tf.contrib.layers.l2_regularizer(self.config['model']['reg_rate'])(W))
+            b = tf.get_variable(name='mlp_bias',initializer=tf.zeros(shape=(self.config['model']['mlp_dim'],),dtype='float32'))
+            # (batch size, sent len, mlp dim)
+            u = tf.nn.tanh(tf.add(tf.tensordot(X,W,axes=[[2],[0]]),b))
+            # (mlp dim,)
+            uW = tf.get_variable(name='word_context_vec',initializer=self.parameter_initializer(shape=(self.config['model']['mlp_dim'],),dtype='float32'))
+            tf.add_to_collection('reg', tf.contrib.layers.l2_regularizer(self.config['model']['reg_rate'])(uW))
+            # (batch size, sent len)
+            temp = tf.clip_by_value(tf.reduce_sum(tf.multiply(u,uW),axis=-1),
+                                    clip_value_min=tf.constant(-self.config['model']['clip_value']),
+                                    clip_value_max=tf.constant(self.config['model']['clip_value']))
+            # (batch size, sent len)
+            temp = tf.multiply(temp,mask)
+            # (batch size, 1)
+            denominator = tf.reduce_sum(temp, axis=-1, keepdims=True)
+            # (batch size, max sent len)
+            denominator = tf.tile(denominator, multiples=[1, self.config['model']['max_sent_len']])
+            # (batch size, max sent len)
+            att = tf.truediv(temp, denominator)
 
         return att
 
@@ -156,7 +157,7 @@ class Layers:
         A = tf.get_variable(name='attr_matrix',
                             initializer=self.parameter_initializer(shape=(self.config['model']['attr_num'],
                                                                           self.config['model']['senti_num'],
-                                                                          self.config['model']['max_sent_len']),
+                                                                          self.config['model']['max_sent_len']*self.config['model']['sentAtt_num']),
                                                                    dtype='float32'))
         tf.add_to_collection('reg',tf.contrib.layers.l2_regularizer(self.config['model']['reg_rate'])(A))
         # (attr num, senti num)
